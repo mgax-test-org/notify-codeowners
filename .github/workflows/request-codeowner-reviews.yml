@@ -1,0 +1,25 @@
+# CODEOWNERS only applies to teams with write access, so request reviews
+# from the matching teams explicitly (that only needs read access).
+name: Request codeowner reviews
+
+on:
+    pull_request_target:
+        types: [opened, ready_for_review]
+
+permissions:
+    contents: read
+    pull-requests: write
+
+jobs:
+    request-reviews:
+        if: ${{ !github.event.pull_request.draft }}
+        runs-on: ubuntu-24.04
+        steps:
+            # pull_request_target checks out the base branch, never the PR's code.
+            - uses: actions/checkout@v7.0.1
+              with:
+                  persist-credentials: false
+            - run: python .github/workflows/request-codeowner-reviews.py "$PR"
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  PR: ${{ github.event.pull_request.number }}
